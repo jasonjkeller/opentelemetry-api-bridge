@@ -31,26 +31,55 @@ common: &default_settings
   # The first application name must be unique.
   app_name: OpenTelemetry Dimensional Metrics Demo
 
-  # The agent instruments the OpenTelemetry SDK to report traces, metrics, and logs.
-  # That functionality can be configured here.
+
+  # ============================== OPEN TELEMETRY SIGNALS ===============================
+
+  # Telemetry signals (Logs, Metrics, and Traces) emitted by OpenTelemetry APIs can
+  # be incorporated into the Java agent and controlled by the following config options.
   opentelemetry:
-    # config to enable different types of telemetry from the OpenTelemetry SDK
-    sdk:
-      autoconfigure:
-        enabled: true
-      spans:
-        enabled: true
-      logs:
-        enabled: true
-    # instrumentation scope names which are excluded from reporting traces and logs
-    instrumentation:
-      specific-instrumentation-scope-name-1:
-        enabled: true
-      specific-instrumentation-scope-name-2:
-        enabled: true
+
+    # Set to true to allow individual OpenTelemetry signals to be enabled, false to disable all OpenTelemetry signals.
+    # Default is false.
+    enabled: true
+
+    # OpenTelemetry Logs signals.
+    logs:
+
+      # Set to true to enable OpenTelemetry Logs signals.
+      # Default is false.
+      enabled: true
+
+    # OpenTelemetry Metrics signals.
     metrics:
-      # comma-separated list of meter names which are excluded from reporting metrics
-      exclude: foo-module,bar-module
+
+      # Set to true to enable OpenTelemetry Metrics signals.
+      # Default is false.
+      enabled: true
+
+      # A comma-delimited string of OpenTelemetry Meters (e.g. "MeterName1,MeterName2") whose signals should be included.
+      # By default, all Meters are included. This will override any default Meter excludes in the agent, effectively re-enabling them.
+      #include:
+
+      # A comma-delimited string of OpenTelemetry Meters (e.g. "MeterName3,MeterName4") whose signals should be excluded.
+      # This takes precedence over all other includes/excludes sources, effectively disabling the listed Meters.
+      #exclude:
+
+    # OpenTelemetry Traces signals.
+    traces:
+
+      # Set to true to enable OpenTelemetry Traces signals.
+      # Default is false.
+      enabled: true
+
+      # A comma-delimited string of OpenTelemetry Tracers (e.g. "TracerName1,TracerName2") whose signals should be included.
+      # By default, all Tracers are included. This will override any default Tracer excludes in the agent, effectively re-enabling them.
+      #include:
+
+      # A comma-delimited string of OpenTelemetry Tracers (e.g. "TracerName3,TracerName4") whose signals should be excluded.
+      # This takes precedence over all other includes/excludes sources, effectively disabling the listed Tracers.
+      #exclude:
+
+  # =============================================================
 
   # To enable high security, set this property to true. When in high
   # security mode, the agent will use SSL and obfuscated SQL. Additionally,
@@ -76,12 +105,12 @@ common: &default_settings
   # The levels in increasing order of verboseness are:
   #   off, severe, warning, info, fine, finer, finest
   # Default is info.
-  log_level: finest
+  log_level: info
 
   # Log all data sent to and from New Relic in plain text.
   # This setting is dynamic, so changes do not require restarting your application.
   # Default is false.
-  audit_mode: true
+  audit_mode: false
 
   # The number of backup log files to save.
   # Default is 1.

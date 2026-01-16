@@ -2,10 +2,17 @@ package org.example.otel.apis;
 
 import com.newrelic.api.agent.Trace;
 import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Scope;
+
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Demonstrates how to generate OpenTelemetry Spans using the OpenTelemetry Trace API.
@@ -15,7 +22,7 @@ public class TraceAPI {
     private final Tracer tracer;
 
     public TraceAPI(OpenTelemetry openTelemetrySdk) {
-        this.tracer = openTelemetrySdk.getTracer("opentelemetry-trace-api-demo","1.0.0");
+        this.tracer = openTelemetrySdk.getTracer("opentelemetry-trace-api-demo", "1.0.0");
     }
 
     /**
@@ -25,7 +32,13 @@ public class TraceAPI {
      * can be expected as far as how the New Relic Java agent handles the OpenTelemetry spans.
      */
     public void generateOtelSpans() throws InterruptedException {
-        System.out.println("\n ===== Generating OpenTelemetry Traces =====\n");
+        System.out.println("\n ===== Generating OpenTelemetry Data =====\n");
+
+        // create span links
+        createSpanLinks();
+
+        // create span events
+        createSpanEvents();
 
         // no txn started on its own
         noSpanKind();
@@ -52,6 +65,82 @@ public class TraceAPI {
 
         // starts a WebTransaction/Uri txn based on server span kind
         serverSpanKind();
+    }
+
+    @Trace(dispatcher = true)
+    public void createSpanEvents() {
+        System.out.println("Called createSpanEvents");
+        Span span = tracer.spanBuilder("spanWithEvents").startSpan();
+        try (Scope scope = span.makeCurrent()) {
+            span
+                    .addEvent("event1")
+                    .addEvent("event2", Instant.ofEpochSecond(System.nanoTime()))
+                    .addEvent("event3", Attributes.builder().put("foo", "bar").build())
+                    .addEvent("event4", Attributes.builder().put("bar", "baz").build(), System.nanoTime(), TimeUnit.NANOSECONDS)
+                    .addEvent("event5", Attributes.builder().put("baz", "buz").build(), Instant.ofEpochSecond(System.nanoTime()))
+                    .addEvent("event6", System.nanoTime(), TimeUnit.NANOSECONDS);
+            Thread.sleep(1000);
+            throw new RuntimeException("Exception in createSpanEventException");
+        } catch (Throwable t) {
+            span.setStatus(StatusCode.ERROR, "Welp... we've got an error in createSpanEvents");
+
+            span.recordException(t);
+            span.recordException(t, Attributes.builder()
+                    .put("exception.message", t.getMessage())
+                    .put("exception.type", t.getClass().getName())
+                    .put("exception.stacktrace", Arrays.toString(t.getStackTrace()))
+                    .build());
+        } finally {
+            span.end();
+        }
+    }
+
+    public void createSpanLinks() {
+        System.out.println("Called createSpanLinks");
+        try {
+            SpanContext spanContext = upstreamSpan();
+            for (int i = 0; i < 20; i++) {
+                downstreamSpan(spanContext, i);
+            }
+            Thread.sleep(500);
+        } catch (InterruptedException ignored) {
+        }
+    }
+
+    // create an upstream span and return its SpanContext
+    @Trace(dispatcher = true)
+    public SpanContext upstreamSpan() throws InterruptedException {
+        Span span = tracer.spanBuilder("upstreamSpan").startSpan();
+        SpanContext spanContext;
+        try (Scope scope = span.makeCurrent()) {
+            System.out.println("Called upstreamSpan");
+            spanContext = span.getSpanContext();
+            Thread.sleep(1000);
+        } catch (Throwable t) {
+            span.recordException(t);
+            throw t;
+        } finally {
+            span.end();
+        }
+        return spanContext;
+    }
+
+    // create a downstream span with a link to the SpanContext of an upstream span
+    @Trace(dispatcher = true)
+    public void downstreamSpan(SpanContext spanContext, int iteration) throws InterruptedException {
+        Span span = tracer.spanBuilder("downstreamSpan")
+                .addLink(spanContext, Attributes.builder().put("iteration", iteration).put("customLinkAttribute", "someValue").build())
+                .startSpan();
+        try (Scope scope = span.makeCurrent()) {
+            System.out.println("Called downstreamSpan");
+            span.setStatus(StatusCode.OK, "All is good in the downstreamSpan");
+            Thread.sleep(1000);
+        } catch (Throwable t) {
+            span.recordException(t);
+            throw t;
+        } finally {
+            span.end();
+        }
     }
 
     @Trace(dispatcher = true)

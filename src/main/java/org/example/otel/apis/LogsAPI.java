@@ -64,17 +64,12 @@ public class LogsAPI {
 
         // Start a New Relic transaction and generate OTel logs
         logInNRTransaction(i);
-//        logInOTelSpan(i);
         // Generate OTel logs with no transaction
         logNoTransaction(i);
     }
 
     @Trace(dispatcher = true)
     public void logInNRTransaction(int iteration) {
-        logAtDifferentSeverities(iteration);
-    }
-
-    public void logInOTelSpan(int iteration) {
         logAtDifferentSeverities(iteration);
     }
 

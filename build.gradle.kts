@@ -28,7 +28,9 @@ dependencies {
     implementation("io.opentelemetry:opentelemetry-exporter-logging")
 
     // New Relic Java agent API dependency
-    implementation("com.newrelic.agent.java:newrelic-api:8.24.0")
+//    implementation("com.newrelic.agent.java:newrelic-api:8.24.0")
+    implementation(files("/Users/jkeller/nr/code/newrelic-java-agent/newrelic-api/build/libs/newrelic-api-9.0.0-SNAPSHOT.jar"))
+
 
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
