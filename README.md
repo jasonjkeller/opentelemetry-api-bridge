@@ -76,29 +76,29 @@ Configuration via YAML:
     logs:
 
       # Set to true to enable OpenTelemetry Logs signals.
-      # Default is false.
+      # Default is true.
       enabled: true
 
     # OpenTelemetry Metrics signals.
     metrics:
 
       # Set to true to enable OpenTelemetry Metrics signals.
-      # Default is false.
+      # Default is true.
       enabled: true
 
       # A comma-delimited string of OpenTelemetry Meters (e.g. "MeterName1,MeterName2") whose signals should be included. 
       # By default, all Meters are included. This will override any default Meter excludes in the agent, effectively re-enabling them.
-      include: "MeterName1,MeterName2" 
+      include: "MeterName1,MeterName2"
 
       # A comma-delimited string of OpenTelemetry Meters (e.g. "MeterName3,MeterName4") whose signals should be excluded. 
       # This takes precedence over all other includes/excludes sources, effectively disabling the listed Meters.
-      exclude: "MeterName3,MeterName4" 
+      exclude: "MeterName3,MeterName4"
 
     # OpenTelemetry Traces signals.
     traces:
 
       # Set to true to enable OpenTelemetry Traces signals.
-      # Default is false.
+      # Default is true.
       enabled: true
 
       # A comma-delimited string of OpenTelemetry Tracers (e.g. "TracerName1,TracerName2") whose signals should be included. 
@@ -217,7 +217,7 @@ Note: It is recommended that OpenTelemetry instrumentation for a particular logg
 
 ### Triggering The Autoconfigure Instrumentation
 
-The Java agent instruments the `opentelemetry-sdk-extension-autoconfigure` library to capture OTel telemetry. This dependency must be present and enabled for the instrumentation to run. It can be enabled by either setting `-Dotel.java.global-autoconfigure.enabled=true` or programmatically calling `AutoConfiguredOpenTelemetrySdk.initialize().getOpenTelemetrySdk()`.
+The Java agent instruments the `opentelemetry-sdk-extension-autoconfigure` library to capture OpenTelemetry signals. This dependency must be present and enabled for the instrumentation to load. It can be enabled by either setting `-Dotel.java.global-autoconfigure.enabled=true` or programmatically calling `AutoConfiguredOpenTelemetrySdk.initialize().getOpenTelemetrySdk()`.
 
 ### OpenTelemetry Metrics Exporter
 
